@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Virtual Travel Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #00f2fe, #4facfe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 40px 50px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      width: 350px;
+      color: white;
+    }
+    h2 {
+      margin-bottom: 30px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      outline: none;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      color: #0078ff;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #e6e6e6;
+    }
+    .error {
+      color: #ffdddd;
+      background: rgba(255,0,0,0.2);
+      padding: 8px;
+      border-radius: 6px;
+      display: none;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <div class="error" id="errorMsg">Invalid Credentials!</div>
+    <form id="adminForm">
+      <input type="text" id="username" placeholder="Enter username" required>
+      <input type="password" id="password" placeholder="Enter password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    // Handle login form submission
+    document.getElementById('adminForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('admin', 'true'); // remember login
+          window.location.href = '/admin.html';
+        } else {
+          const err = document.getElementById('errorMsg');
+          err.style.display = 'block';
+          setTimeout(() => { err.style.display = 'none'; }, 3000);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    });
+
+    // Redirect to login page if not logged in (for admin.html page)
+    if (window.location.pathname === '/admin.html' && !localStorage.getItem('admin')) {
+      window.location.href = '/admin-login.html';
+    }
+  </script>
+</body>
+</html>

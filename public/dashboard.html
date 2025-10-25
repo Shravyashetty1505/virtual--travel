@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TravelSphere — Dashboard (Demo)</title>
+  <style>
+    :root{--accent:#0078ff;--muted:#617085;--bg:#f4f7fb}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, "Segoe UI", system-ui, Arial; background:var(--bg); color:#102334}
+    /* Top bar */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:white;box-shadow:0 6px 18px rgba(2,6,23,0.05);position:sticky;top:0;z-index:50}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:44px;height:44px;border-radius:8px}
+    .brand h1{font-size:20px;margin:0;color:var(--accent)}
+    .top-search{display:flex;align-items:center;gap:12px;flex:1;max-width:900px;margin-left:20px}
+    .dest-input{position:relative;flex:1}
+    input[type=text], select, input[type=date]{padding:10px 12px;border-radius:10px;border:1px solid #e6eefb;font-size:14px;width:100%}
+    .search-btn{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    .account-mini{display:flex;align-items:center;gap:10px;cursor:pointer}
+    .account-mini img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.08)}
+    /* hero */
+    .hero{margin:20px; border-radius:12px; overflow:hidden; position:relative}
+    .hero .bg{background-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1800&auto=format&fit=crop'); background-size:cover;background-position:center;height:220px;position:relative}
+    .hero .overlay{position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(180deg,rgba(6,30,78,0.45),rgba(6,30,78,0.55));display:flex;align-items:center;padding:24px;gap:20px}
+    .hero h2{color:white;margin:0;font-size:28px}
+    .hero p{color:rgba(255,255,255,0.9);margin:6px 0 0}
+    /* tabs */
+    .tabs{display:flex;gap:8px;margin:14px 20px}
+    .tab{background:white;padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:0 6px 18px rgba(2,6,23,0.03);font-weight:600;color:var(--muted)}
+    .tab.active{background:linear-gradient(90deg,#fff,#f8fbff);color:var(--accent);border:1px solid rgba(0,120,255,0.08)}
+    /* layout */
+    .container{display:flex;gap:20px;padding:0 20px 40px}
+    .left{flex:1}
+    .right{width:360px;position:sticky;top:96px;height:fit-content}
+    .section{background:white;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.04);margin-bottom:16px}
+    .section h3{margin:0 0 12px 0;color:var(--accent)}
+    .filters{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+    .cards{display:flex;flex-wrap:wrap;gap:12px}
+    .card{width:calc(50% - 6px);background:#fff;border-radius:10px;border:1px solid #eef5ff;display:flex;overflow:hidden}
+    .card .media{width:110px;height:100px;flex:0 0 110px}
+    .card img{width:100%;height:100%;object-fit:cover}
+    .card .info{padding:10px;flex:1;display:flex;flex-direction:column}
+    .info h4{margin:0 0 6px 0;font-size:15px;color:#15498a}
+    .info p{margin:0;font-size:13px;color:var(--muted)}
+    .price{margin-top:auto;font-weight:700;color:#0c3a86}
+    .actions{margin-top:8px;display:flex;gap:8px}
+    .pill{padding:6px 8px;border-radius:8px;background:#f5f8ff;font-weight:700;font-size:12px;border:1px solid #edf4ff;cursor:pointer}
+    .book-btn{background:var(--accent);color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:700}
+    /* right column */
+    .side-profile{display:flex;gap:10px;align-items:center}
+    .side-profile img{width:72px;height:72px;border-radius:8px}
+    .side-profile .meta h4{margin:0}
+    .side-box{margin-top:12px}
+    .small{font-size:13px;color:var(--muted)}
+    /* modal */
+    .modal-backdrop{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,0.4);display:none;align-items:center;justify-content:center;z-index:9999}
+    .modal{background:white;border-radius:12px;padding:18px;width:760px;max-height:86vh;overflow:auto;box-shadow:0 18px 50px rgba(2,6,23,0.3);position:relative}
+    .modal .close{position:absolute;right:12px;top:12px;background:#ff6b6b;border:none;color:white;padding:8px;border-radius:8px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eef6ff;text-align:left}
+    th{background:#fbfdff}
+    .booking-actions{display:flex;gap:12px;align-items:center;margin-top:12px}
+    .pay-options{display:flex;gap:8px;align-items:center}
+    .pay-options img{width:44px;height:28px;object-fit:contain}
+    /* payment form */
+    .pay-form{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .pay-form input{padding:10px;border-radius:8px;border:1px solid #eef4ff}
+    .hidden{display:none}
+    /* responsive */
+    @media(max-width:980px){
+      .card{width:100%}
+      .right{display:none}
+      .top-search{max-width:unset;margin-left:0}
+      .hero .overlay{flex-direction:column;align-items:flex-start}
+      .modal{width:92%}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="brand">
+      <img src="https://images.unsplash.com/photo-1546443046-ed1ce6ffd1d6?q=80&w=120&auto=format&fit=crop" alt="logo">
+      <h1>TravelSphere</h1>
+    </div>
+
+    <div class="top-search">
+      <div style="min-width:260px">
+        <select id="select-type" style="width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefb">
+          <option value="flight">Flights</option>
+          <option value="hotel">Hotels</option>
+          <option value="train">Trains</option>
+          <option value="car">Cars</option>
+        </select>
+      </div>
+
+      <div class="dest-input">
+        <input type="text" id="dest" placeholder="Select your destination (type city or country) — e.g. Goa, London, Dubai" autocomplete="off" />
+        <div id="suggest" style="display:none;position:absolute;left:0;right:0;top:42px;background:white;border-radius:8px;border:1px solid #eef6ff;box-shadow:0 8px 22px rgba(2,6,23,0.06);z-index:40"></div>
+      </div>
+
+      <input type="date" id="depart" style="width:160px" />
+      <button class="search-btn" onclick="performSearch()">Search</button>
+    </div>
+
+    <div class="account-mini" onclick="openProfile()">
+      <div style="text-align:right;margin-right:8px">
+        <div style="font-weight:700">Anita Sharma</div>
+        <div style="font-size:12px;color:var(--muted)">Student • Silver</div>
+      </div>
+      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop" alt="profile">
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="bg">
+      <div class="overlay">
+        <div>
+          <h2>TravelSphere — Your Destination Awaits</h2>
+          <p>Mountains, beaches, cities — search flights, hotels, trains & cars. Student discounts available.</p>
+          <div style="height:12px"></div>
+          <div style="max-width:720px"></div>
+        </div>
+        <div style="width:340px;text-align:right">
+          <div style="background:rgba(255,255,255,0.06);padding:12px;border-radius:8px;display:inline-block">
+            <div style="font-weight:700;color:white">Member Benefits</div>
+            <div style="color:rgba(255,255,255,0.9);font-size:13px">10% student discount • Extra cashback on UPI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="flights" onclick="switchTab('flights')">Flights ✈️</div>
+    <div class="tab" data-tab="hotels" onclick="switchTab('hotels')">Hotels 🏨</div>
+    <div class="tab" data-tab="trains" onclick="switchTab('trains')">Trains 🚆</div>
+    <div class="tab" data-tab="cars" onclick="switchTab('cars')">Cars 🚗</div>
+    <div class="tab" data-tab="bookings" onclick="switchTab('bookings')">My Bookings (0)</div>
+  </div>
+
+  <!-- Main container -->
+  <div class="container">
+    <div class="left">
+
+      <!-- Flights Tab -->
+      <div id="tab-flights">
+        <div class="section">
+          <h3>Flights</h3>
+          <div class="filters">
+            <div style="display:flex;gap:8px;align-items:center">
+              <label class="small">Show:</label>
+              <select id="flight-filter-type" onchange="applyFlightFilter()" style="padding:8px;border-radius:8px;border:1px solid #e6eefb">
+                <option value="all">All (Domestic & International)</option>
+                <option value="domestic">Domestic</option>
+                <option value="international">International</option>
+              </select>
+            </div>
+
+            <div style="display:flex;align-items:center;margin-left:auto;gap:8px">
+              <label class="small">Sort:</label>
+              <select id="flight-sort" onchange="sortFlights(this.value)" style="padding:8px;border-radius:8px;border:1px solid #e6eefb">
+                <option value="none">Default</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="cards" id="flight-cards"></div>
+        </div>
+      </div>
+
+      <!-- Hotels Tab (fixed) -->
+      <div id="tab-hotels" style="display:none">
+        <div class="section">
+          <h3>Hotels</h3>
+          <div class="cards" id="hotel-cards"></div>
+        </div>
+      </div>
+
+      <!-- Trains Tab -->
+      <div id="tab-trains" style="display:none">
+        <div class="section">
+          <h3>Trains</h3>
+          <div class="cards" id="train-cards"></div>
+        </div>
+      </div>
+
+      <!-- Cars Tab -->
+      <div id="tab-cars" style="display:none">
+        <div class="section">
+          <h3>Cars & Cabs</h3>
+          <div class="cards" id="car-cards"></div>
+        </div>
+      </div>
+
+      <!-- My Bookings Tab -->
+      <div id="tab-bookings" style="display:none">
+        <div class="section">
+          <h3>My Bookings</h3>
+          <div id="bookings-list">
+            <div class="small">No bookings yet. Make a booking and it will appear here.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right column -->
+    <div class="right">
+      <div class="section">
+        <div class="side-profile">
+          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop" alt="you">
+          <div class="meta">
+            <h4>Anita Sharma</h4>
+            <div class="small">anita.s@travelsphere.com</div>
+            <div style="height:6px"></div>
+            <div class="small">Student ID: <strong>STU12345</strong></div>
+          </div>
+        </div>
+        <div class="side-box" style="margin-top:12px">
+          <div style="font-weight:700">Available discounts</div>
+          <div class="small">• Student Discount: 10% on flights & hotels</div>
+          <div class="small">• Promo: Flat ₹500 off (one-time)</div>
+          <div style="height:10px"></div>
+          <button class="book-btn" onclick="openProfile()">View Profile</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Your Bookings</h3>
+        <div class="small" id="bookings-summary">No bookings yet. Make a booking and it will appear here.</div>
+      </div>
+
+      <div class="section">
+        <h3>Quick Links</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="pill" onclick="switchTab('flights')">Search Flights</button>
+          <button class="pill" onclick="switchTab('hotels')">Search Hotels</button>
+          <button class="pill" onclick="switchTab('trains')">Search Trains</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Booking modal -->
+  <div class="modal-backdrop" id="backdrop">
+    <div class="modal" id="modal">
+      <button class="close" onclick="closeModal()">Close</button>
+      <h3 id="modal-title">Booking</h3>
+
+      <!-- dynamic content -->
+      <div id="modal-content"></div>
+
+      <div class="booking-actions">
+        <div style="display:flex;gap:12px;align-items:center">
+          <label><input type="checkbox" id="student-discount" onchange="updateFinalPrice()"> Student Discount (10%)</label>
+          <label><input type="checkbox" id="promo-discount" onchange="updateFinalPrice()"> Apply Promo (₹500 off)</label>
+        </div>
+
+        <div style="margin-left:auto">
+          <strong>Final price: </strong><span id="final-price">-</span>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <!-- Payment -->
+      <div style="border-top:1px solid #eef6ff;padding-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">Payment Method</div>
+          <div class="pay-options">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" alt="visa">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Mastercard-logo.png" alt="mc" style="height:20px">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/UPI-Logo.png" alt="upi" style="height:20px">
+          </div>
+        </div>
+
+        <div class="pay-form" id="pay-form">
+          <label style="font-weight:700">Passenger / Payer Name</label>
+          <input type="text" id="payer-name" placeholder="Enter full name">
+
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+            <label><input type="radio" name="pay-method" value="card" checked onchange="onPaymentMethodChange()"> Card</label>
+            <label><input type="radio" name="pay-method" value="upi" onchange="onPaymentMethodChange()"> UPI</label>
+          </div>
+
+          <div id="card-fields">
+            <input type="text" id="card-name" placeholder="Card holder name">
+            <input type="text" id="card-number" placeholder="Card number (demo)">
+            <div style="display:flex;gap:8px">
+              <input type="text" id="card-exp" placeholder="MM/YY" style="flex:1">
+              <input type="text" id="card-cvv" placeholder="CVV" style="width:110px">
+            </div>
+          </div>
+
+          <div id="upi-field" class="hidden">
+            <input type="text" id="upi-id" placeholder="UPI ID (e.g. anita@upi)">
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="pill" onclick="closeModal()">Cancel</button>
+          <button class="book-btn" onclick="confirmBooking()">Confirm & Pay</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+/* -------------------------
+   Demo data (images via CDN)
+   ------------------------- */
+const airlines = [
+  { id:'indigo', name:'IndiGo', logo:'https://assets.cntraveller.in/photos/659e986cd11d49c5b40f4306/16:9/w_960,c_limit/indigo.jpg', type:'Domestic & International',
+    flights:[
+      {from:'Delhi', to:'Mumbai', time:'06:00', price:2500, cls:'Economy'},
+      {from:'Mumbai', to:'Goa', time:'09:15', price:3000, cls:'Economy'},
+      {from:'Bengaluru', to:'London', time:'23:30', price:35000, cls:'Economy'}
+    ]
+  },
+  { id:'spice', name:'SpiceJet', logo:'https://s28477.pcdn.co/wp-content/uploads/2020/07/Spicejet_1-984x554.jpg', type:'Domestic & International',
+    flights:[
+      {from:'Delhi', to:'Goa', time:'07:30', price:2600, cls:'Economy'},
+      {from:'Mumbai', to:'Dubai', time:'20:00', price:27000, cls:'Economy'},
+      {from:'Chennai', to:'Bengaluru', time:'06:40', price:2200, cls:'Economy'}
+    ]
+  },
+  { id:'vistara', name:'Vistara', logo:'https://www.ultramain.com/wp-content/uploads/2022/07/MicrosoftTeams-image-11-scaled.jpg', type:'International',
+    flights:[
+      {from:'Delhi', to:'London', time:'02:00', price:35500, cls:'Economy'},
+      {from:'Mumbai', to:'Singapore', time:'04:20', price:40000, cls:'Economy'}
+    ]
+  },
+  { id:'airindia', name:'Air India', logo:'https://www.hindustantimes.com/ht-img/img/2025/06/22/1600x900/air_india_boeing_787_1750085012514_1750599851283.jpg', type:'International',
+    flights:[
+      {from:'Delhi', to:'New York', time:'11:30', price:42500, cls:'Economy'},
+      {from:'Mumbai', to:'Dubai', time:'13:50', price:28000, cls:'Economy'}
+    ]
+  },
+  { id:'emirates', name:'Emirates', logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/A6-EDY_A380_Emirates_31_jan_2013_jfk_%288442269364%29_%28cropped%29.jpg/960px-A6-EDY_A380_Emirates_31_jan_2013_jfk_%288442269364%29_%28cropped%29.jpg', type:'International',
+    flights:[
+      {from:'Mumbai', to:'Dubai', time:'12:00', price:30000, cls:'Business'},
+      {from:'Delhi', to:'Sydney', time:'22:00', price:65000, cls:'Business'}
+    ]
+  },
+  { id:'ba', name:'British Airways', logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/British_Airways_A380-800_F-WWSC_%281%29.jpg/500px-British_Airways_A380-800_F-WWSC_%281%29.jpg', type:'International',
+    flights:[
+      {from:'Mumbai', to:'London', time:'08:00', price:38000, cls:'Economy'},
+      {from:'Delhi', to:'Paris', time:'10:00', price:36000, cls:'Economy'}
+    ]
+  }
+];
+
+const hotels = [
+  {name:'Taj Resort', city:'Goa', img:'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200&auto=format&fit=crop', price:7000},
+  {name:'Marriott City', city:'Mumbai', img:'https://images.squarespace-cdn.com/content/v1/63d83cafb5d75a62ec607e07/762da95b-4ef3-43d2-9624-e27810385aa6/The+Best+Luxury+Hotels+in+Mumbai+with+a+5-Star+Sea+View+-+Four+Seasons+Hotel+Mumbai.jpg', price:4800},
+  {name:'Hyatt Regency', city:'Bengaluru', img:'https://www.shutterstock.com/image-photo/five-stars-hotel-tropic-evening-260nw-16252828.jpg', price:5200},
+  {name:'Novotel Plaza', city:'Delhi', img:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop', price:4300},
+  {name:'Oberoi Luxury', city:'Mumbai', img:'https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?q=80&w=1200&auto=format&fit=crop', price:15000},
+  {name:'Hilton Harbor', city:'London', img:'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop', price:16000}
+];
+
+const trains = [
+  {name:'Rajdhani Express', route:'Delhi → Mumbai', img:'https://images.pexels.com/photos/16456875/pexels-photo-16456875.jpeg?cs=srgb&dl=pexels-kishanjose-16456875.jpg&fm=jpg', price:1800},
+  {name:'Shatabdi Express', route:'Bengaluru → Chennai', img:'https://static.toiimg.com/thumb/msid-93023585,width-748,height-499,resizemode=4,imgsize-255784/.jpg', price:900},
+  {name:'Vande Bharat', route:'Delhi → Agra', img:'https://images.livemint.com/img/2023/02/15/960x540/Vande_Bharat__1676446328347_1676446328597_1676446328597.jpg', price:650},
+  {name:'Tejas Express', route:'Mumbai → Goa', img:'https://t4.ftcdn.net/jpg/00/87/74/71/360_F_87747134_zM9942RI7be5WHwCMx0t85IuMASQpMZf.jpg', price:1000}
+];
+
+const cars = [
+  {name:'WagonR', img:'https://www.autovista.in/assets/img/new_cars_colour_variants/new-wagonR-colour-superior-white.jpg', price:700},
+  {name:'Swift', img:'https://www.marutiseva.com/assets/images/new-gen-swift/car-03.png', price:850},
+  {name:'Innova', img:'https://static3.toyotabharat.com/images/showroom/innova-mmc/unmatched-unrivaled-banner1600x850.jpg', price:1500},
+  {name:'SUV (Hyundai Creta)', img:'https://stimg.cardekho.com/images/carexteriorimages/930x620/Hyundai/Creta/8667/1751535724464/rear-left-view-121.jpg', price:1200},
+  {name:'Sedan (City)', img:'https://www.hyundai.com/content/dam/hyundai/au/en/models/i30-sedan/key-features/KeyFeatures_1_Sports-inspired%20styling_758x540.jpg', price:900},
+  {name:'Luxury (Mercedes)', img:'https://motoringworld.in/wp-content/uploads/2024/10/DSC01985-scaled.jpg', price:2500}
+];
+
+/* -------------------------
+   Render lists (cards)
+   ------------------------- */
+const flightCards = document.getElementById('flight-cards');
+const hotelCards = document.getElementById('hotel-cards');
+const trainCards = document.getElementById('train-cards');
+const carCards = document.getElementById('car-cards');
+
+function makeAirlineCard(a){
+  const div = document.createElement('div'); div.className='card';
+  const minPrice = Math.min(...a.flights.map(f=>f.price));
+  div.innerHTML = `
+    <div class="media"><img src="${a.logo}" alt="${a.name} logo"></div>
+    <div class="info">
+      <h4>${a.name} <span style="font-size:12px;color:#b25b00;margin-left:6px">Student 10% off</span></h4>
+      <p>${a.type}</p>
+      <p class="small" style="margin-top:6px">${a.flights.slice(0,2).map(f => f.from + ' → ' + f.to + ' • ' + f.time).join(' / ')}</p>
+      <div class="price">From ₹${minPrice}</div>
+      <div class="actions"><button class="pill" onclick='openFlightModal("${a.id}")'>View & Book</button></div>
+    </div>`;
+  return div;
+}
+function renderFlights(list){
+  flightCards.innerHTML = ''; list.forEach(a=> flightCards.appendChild(makeAirlineCard(a)));
+}
+function makeHotelCard(h){
+  const d = document.createElement('div'); d.className='card';
+  d.innerHTML = `<div class="media"><img src="${h.img}" alt="${h.name}"></div>
+    <div class="info">
+      <h4>${h.name}</h4>
+      <p>${h.city}</p>
+      <div class="price">₹${h.price}/night <span style="color:#b86b00;font-size:12px;margin-left:8px">Student 10% off</span></div>
+      <div class="actions"><button class="pill" onclick='openHotelModal("${h.name}",${h.price},"${h.img}")'>Book</button></div>
+    </div>`;
+  return d;
+}
+function renderHotels(list=hotels){
+  hotelCards.innerHTML=''; list.forEach(h=> hotelCards.appendChild(makeHotelCard(h)));
+}
+function makeTrainCard(t){
+  const d = document.createElement('div'); d.className='card';
+  d.innerHTML = `<div class="media"><img src="${t.img}" alt="${t.name}"></div>
+    <div class="info">
+      <h4>${t.name}</h4>
+      <p>${t.route}</p>
+      <div class="price">₹${t.price}</div>
+      <div class="actions"><button class="pill" onclick='openTrainModal("${t.name}",${t.price},"${t.img}")'>Book</button></div>
+    </div>`;
+  return d;
+}
+function renderTrains(){ trainCards.innerHTML=''; trains.forEach(t=> trainCards.appendChild(makeTrainCard(t))); }
+function makeCarCard(c){
+  const d = document.createElement('div'); d.className='card';
+  d.innerHTML = `<div class="media"><img src="${c.img}" alt="${c.name}"></div>
+    <div class="info">
+      <h4>${c.name}</h4>
+      <p>Rent per day</p>
+      <div class="price">₹${c.price}</div>
+      <div class="actions"><button class="pill" onclick='openCarModal("${c.name}",${c.price},"${c.img}")'>Book</button></div>
+    </div>`;
+  return d;
+}
+function renderCars(){ carCards.innerHTML=''; cars.forEach(c=> carCards.appendChild(makeCarCard(c))); }
+
+/* initial render */
+renderFlights(airlines); renderHotels(); renderTrains(); renderCars();
+
+/* -------------------------
+   Tabs & search & autocomplete
+   ------------------------- */
+function switchTab(id){
+  ['flights','hotels','trains','cars','bookings'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = (t===id ? 'block' : 'none');
+    document.querySelectorAll('.tab').forEach(tabEl=> tabEl.classList.toggle('active', tabEl.dataset.tab===id));
+  });
+  // update bookings tab title count
+  updateBookingsUI();
+  // Re-render cards for the active tab
+  if(id === 'flights') renderFlights(airlines);
+  if(id === 'hotels') renderHotels();
+  if(id === 'trains') renderTrains();
+  if(id === 'cars') renderCars();
+  if(id === 'bookings') renderBookings();
+}
+
+function performSearch(){
+  const q = document.getElementById('dest').value.trim().toLowerCase();
+  if(!q){ renderFlights(airlines); renderHotels(); renderTrains(); renderCars(); return; }
+  // filter flights by destination or origin
+  const ffiltered = airlines.map(a=> ({...a, flights: a.flights.filter(f=> f.to.toLowerCase().includes(q) || f.from.toLowerCase().includes(q))})).filter(a=> a.flights.length>0);
+  renderFlights(ffiltered);
+  // hotels by city
+  const hfiltered = hotels.filter(h=> h.city.toLowerCase().includes(q) || h.name.toLowerCase().includes(q));
+  renderHotels(hfiltered.length? hfiltered : []);
+  // trains by route/name
+  const tfiltered = trains.filter(t=> t.name.toLowerCase().includes(q) || t.route.toLowerCase().includes(q));
+  trainCards.innerHTML=''; (tfiltered.length ? tfiltered : []).forEach(t=> trainCards.appendChild(makeTrainCard(t)));
+  // cars by name
+  const cfiltered = cars.filter(c=> c.name.toLowerCase().includes(q));
+  carCards.innerHTML=''; (cfiltered.length ? cfiltered : []).forEach(c=> carCards.appendChild(makeCarCard(c)));
+}
+
+/* autocomplete */
+const allPlaces = Array.from(new Set(
+  [].concat(...airlines.map(a=> a.flights.map(f=> f.to)), hotels.map(h=> h.city))
+)).sort();
+const suggestBox = document.getElementById('suggest');
+document.getElementById('dest').addEventListener('input', function(){
+  const v = this.value.trim().toLowerCase();
+  if(!v){ suggestBox.style.display='none'; return; }
+  const matches = allPlaces.filter(p=> p.toLowerCase().includes(v)).slice(0,8);
+  if(!matches.length){ suggestBox.style.display='none'; return; }
+  suggestBox.innerHTML = ''; matches.forEach(m=>{
+    const d = document.createElement('div'); d.style.padding='8px 12px'; d.style.cursor='pointer'; d.innerText = m;
+    d.onclick = ()=>{ document.getElementById('dest').value = m; suggestBox.style.display='none'; };
+    suggestBox.appendChild(d);
+  });
+  suggestBox.style.display='block';
+});
+document.addEventListener('click', e=> { if(!document.getElementById('dest').contains(e.target)) suggestBox.style.display='none'; });
+
+/* Sorting & filtering */
+function sortFlights(mode){
+  if(mode==='none'){ renderFlights(airlines); return; }
+  const copy = airlines.map(a=> ({...a, flights: [...a.flights].sort((x,y)=> mode==='price-asc' ? x.price - y.price : y.price - x.price)}));
+  renderFlights(copy);
+}
+function applyFlightFilter(){
+  const val = document.getElementById('flight-filter-type').value;
+  if(val==='all'){ renderFlights(airlines); return; }
+  const filtered = airlines.map(a=> ({...a, flights: a.flights.filter(f=> {
+    const domestic = f.price < 20000; // simple heuristic: <20k domestic in demo
+    return (val==='domestic' && domestic) || (val==='international' && !domestic);
+  })})).filter(a=> a.flights.length>0);
+  renderFlights(filtered);
+}
+
+/* -------------------------
+   Booking modal & payments
+   ------------------------- */
+const backdrop = document.getElementById('backdrop');
+let currentSelection = null; // {type:'flight'|'hotel'|..., data:...}
+
+function openFlightModal(airlineId){
+  const a = airlines.find(x=> x.id===airlineId);
+  if(!a) return;
+  currentSelection = {type:'flight-airline', airline: a, selected: null};
+  document.getElementById('modal-title').innerText = a.name + ' — choose a flight';
+  // build table
+  let html = `<div style="display:flex;gap:12px;align-items:center"><img src="${a.logo}" style="width:72px;height:44px;object-fit:contain"><div><strong>${a.name}</strong><div style="color:var(--muted)">${a.type}</div></div></div>`;
+  html += `<table><thead><tr><th>From → To</th><th>Time</th><th>Class</th><th>Price</th><th></th></tr></thead><tbody>`;
+  a.flights.forEach((f, idx)=>{
+    html += `<tr id="flight-row-${idx}"><td>${f.from} → ${f.to}</td><td>${f.time}</td><td>${f.cls}</td><td>₹${f.price}</td><td><button class="book-btn" onclick="selectFlight(${idx})">Select</button></td></tr>`;
+  });
+  html += `</tbody></table>`;
+  html += `<div style="margin-top:8px;color:var(--muted)">Tip: use Student Discount or Promo before paying.</div>`;
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('student-discount').checked = true;
+  document.getElementById('promo-discount').checked = false;
+  document.getElementById('final-price').innerText = '-';
+  // reset payment form
+  resetPaymentForm();
+  backdrop.style.display='flex';
+  document.getElementById('modal').scrollTop = 0;
+}
+function selectFlight(idx){
+  const sel = currentSelection.airline.flights[idx];
+  currentSelection.selected = sel;
+  // visually mark selected row
+  [...document.querySelectorAll('[id^="flight-row-"]')].forEach(r => r.style.background = '');
+  const row = document.getElementById(`flight-row-${idx}`);
+  if(row) row.style.background = 'rgba(0,120,255,0.04)';
+  updateFinalPrice();
+}
+function openHotelModal(name, price, img){
+  currentSelection = {type:'hotel', name, price, img};
+  document.getElementById('modal-title').innerText = 'Hotel booking — ' + name;
+  document.getElementById('modal-content').innerHTML = `<div style="display:flex;gap:12px"><img src="${img}" style="width:140px;height:90px;object-fit:cover;border-radius:8px"><div><strong>${name}</strong><div class="small">Price per night: ₹${price}</div></div></div>`;
+  document.getElementById('student-discount').checked = true;
+  document.getElementById('promo-discount').checked = false;
+  document.getElementById('final-price').innerText = '-';
+  resetPaymentForm();
+  updateFinalPrice();
+  backdrop.style.display='flex';
+}
+function openTrainModal(name, price, img){
+  currentSelection = {type:'train', name, price, img};
+  document.getElementById('modal-title').innerText = 'Train booking — ' + name;
+  document.getElementById('modal-content').innerHTML = `<div style="display:flex;gap:12px"><img src="${img}" style="width:140px;height:90px;object-fit:cover;border-radius:8px"><div><strong>${name}</strong><div class="small">Fare: ₹${price}</div></div></div>`;
+  document.getElementById('student-discount').checked = false; // trains student fare handled separately
+  document.getElementById('promo-discount').checked = false;
+  resetPaymentForm();
+  updateFinalPrice();
+  backdrop.style.display='flex';
+}
+function openCarModal(name, price, img){
+  currentSelection = {type:'car', name, price, img};
+  document.getElementById('modal-title').innerText = 'Car booking — ' + name;
+  document.getElementById('modal-content').innerHTML = `<div style="display:flex;gap:12px"><img src="${img}" style="width:140px;height:90px;object-fit:cover;border-radius:8px"><div><strong>${name}</strong><div class="small">Rate per day: ₹${price}</div></div></div>`;
+  document.getElementById('student-discount').checked = false;
+  document.getElementById('promo-discount').checked = false;
+  resetPaymentForm();
+  updateFinalPrice();
+  backdrop.style.display='flex';
+}
+function closeModal(){
+  backdrop.style.display='none'; currentSelection = null;
+  document.getElementById('final-price').innerText = '-';
+}
+function updateFinalPrice(){
+  if(!currentSelection){ document.getElementById('final-price').innerText = '-'; return; }
+  let base = 0;
+  if(currentSelection.type==='flight-airline' && currentSelection.selected) base = currentSelection.selected.price;
+  else if(currentSelection.type==='hotel') base = currentSelection.price;
+  else if(currentSelection.type==='train') base = currentSelection.price;
+  else if(currentSelection.type==='car') base = currentSelection.price;
+  else base = 0;
+  let finalP = base;
+  if(document.getElementById('student-discount').checked) finalP = Math.round(finalP * 0.9); // 10% student
+  if(document.getElementById('promo-discount').checked) finalP = Math.max(0, finalP - 500);
+  document.getElementById('final-price').innerText = finalP ? ('₹' + finalP) : '-';
+}
+
+/* Payment UI helpers */
+function resetPaymentForm(){
+  document.getElementById('payer-name').value = '';
+  document.getElementById('card-name').value = '';
+  document.getElementById('card-number').value = '';
+  document.getElementById('card-exp').value = '';
+  document.getElementById('card-cvv').value = '';
+  document.getElementById('upi-id').value = '';
+  // default to card
+  document.querySelectorAll('input[name="pay-method"]').forEach(i=> i.checked = (i.value==='card'));
+  onPaymentMethodChange();
+}
+function onPaymentMethodChange(){
+  const m = document.querySelector('input[name="pay-method"]:checked').value;
+  if(m==='card'){
+    document.getElementById('card-fields').classList.remove('hidden');
+    document.getElementById('upi-field').classList.add('hidden');
+  }else{
+    document.getElementById('card-fields').classList.add('hidden');
+    document.getElementById('upi-field').classList.remove('hidden');
+  }
+}
+
+/* -------------------------
+   Booking storage & confirm
+   ------------------------- */
+function genId(){ return 'BKG' + Date.now().toString().slice(-8); }
+
+function loadBookings(){
+  try{
+    const raw = localStorage.getItem('ts_bookings');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveBookings(list){
+  localStorage.setItem('ts_bookings', JSON.stringify(list));
+  updateBookingsUI();
+}
+function updateBookingsUI(){
+  const list = loadBookings();
+  const count = list.length;
+  // update tab title
+  document.querySelectorAll('.tab').forEach(t => {
+    if(t.dataset.tab === 'bookings') t.innerText = `My Bookings (${count})`;
+  });
+  // update right summary
+  const summary = document.getElementById('bookings-summary');
+  if(summary) summary.innerText = count ? `You have ${count} booking(s). Click My Bookings to view.` : 'No bookings yet. Make a booking and it will appear here.';
+}
+
+function confirmBooking(){
+  if(!currentSelection){ alert('No selection'); return; }
+  const finalText = document.getElementById('final-price').innerText;
+  if(!finalText || finalText === '-' ){ alert('Select an option and make sure final price is shown.'); return; }
+  const amount = parseInt(finalText.replace('₹','').replace(',','')) || 0;
+  const payer = document.getElementById('payer-name').value.trim();
+  if(!payer){ alert('Please enter the payer / passenger name.'); return; }
+  const paymentMethod = document.querySelector('input[name="pay-method"]:checked').value;
+  if(paymentMethod === 'card'){
+    const cn = document.getElementById('card-number').value.trim();
+    if(!cn){ if(!confirm('Card details empty (demo). Proceed anyway?')) return; }
+  } else {
+    const upi = document.getElementById('upi-id').value.trim();
+    if(!upi){ if(!confirm('UPI ID empty (demo). Proceed anyway?')) return; }
+  }
+
+  // build booking object
+  const booking = {
+    id: genId(),
+    type: currentSelection.type,
+    itemName: currentSelection.name || (currentSelection.selected ? (currentSelection.airline.name + ' ' + (currentSelection.selected.from + '→' + currentSelection.selected.to)) : 'Flight'),
+    basePrice: (currentSelection.selected ? currentSelection.selected.price : currentSelection.price) || 0,
+    finalPrice: amount,
+    payerName: payer,
+    paymentMethod: paymentMethod,
+    travelDate: document.getElementById('depart').value || null,
+    timestamp: new Date().toISOString(),
+    details: currentSelection
+  };
+
+  // save to localStorage
+  const existing = loadBookings();
+  existing.unshift(booking);
+  saveBookings(existing);
+
+  alert('Payment processed (demo).\nBooking confirmed!\nBooking ID: ' + booking.id + '\nAmount: ₹' + booking.finalPrice);
+  closeModal();
+  switchTab('bookings');
+}
+
+/* render bookings list */
+function renderBookings(){
+  const list = loadBookings();
+  const container = document.getElementById('bookings-list');
+  if(!container) return;
+  container.innerHTML = '';
+  if(!list.length){
+    container.innerHTML = '<div class="small">No bookings yet. Make a booking and it will appear here.</div>';
+    return;
+  }
+  const table = document.createElement('table');
+  table.innerHTML = `<thead><tr><th>Booking ID</th><th>Item</th><th>Paid</th><th>Method</th><th>Name</th><th>Date</th><th></th></tr></thead>`;
+  const tbody = document.createElement('tbody');
+  list.forEach(b=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:700">${b.id}</td>
+      <td>${escapeHtml(b.itemName)}</td>
+      <td>₹${b.finalPrice}</td>
+      <td>${b.paymentMethod.toUpperCase()}</td>
+      <td>${escapeHtml(b.payerName)}</td>
+      <td>${b.travelDate ? b.travelDate : '-'}</td>
+      <td><button class="pill" onclick="viewBooking('${b.id}')">View</button></td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.appendChild(table);
+}
+function viewBooking(id){
+  const list = loadBookings();
+  const b = list.find(x=> x.id===id);
+  if(!b) return alert('Booking not found');
+  let html = `<div style="display:flex;gap:12px;align-items:center"><div style="font-weight:700">Booking ID: ${b.id}</div><div style="color:var(--muted);margin-left:12px">on ${new Date(b.timestamp).toLocaleString()}</div></div>`;
+  html += `<div style="margin-top:8px"><strong>Item:</strong> ${escapeHtml(b.itemName)}</div>`;
+  html += `<div><strong>Paid:</strong> ₹${b.finalPrice} (${b.paymentMethod.toUpperCase()})</div>`;
+  html += `<div><strong>Payer:</strong> ${escapeHtml(b.payerName)}</div>`;
+  html += `<div><strong>Travel Date:</strong> ${b.travelDate ? b.travelDate : '-'}</div>`;
+  html += `<div style="margin-top:12px"><button class="pill" onclick="closeModal()">Close</button></div>`;
+  document.getElementById('modal-title').innerText = 'Booking Details';
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('student-discount').checked = false;
+  document.getElementById('promo-discount').checked = false;
+  document.getElementById('final-price').innerText = '₹' + b.finalPrice;
+  backdrop.style.display='flex';
+}
+
+/* small helper to avoid HTML injection when rendering */
+function escapeHtml(text){
+  if(!text) return '';
+  return text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
+
+/* Helpers */
+function openProfile(){ alert('Profile — Anita Sharma\\nEmail: anita.s@travelsphere.com\\nStudent: Yes\\nID: STU12345'); }
+
+/* initial UI */
+updateBookingsUI();
+switchTab('flights');
+
+</script>
+</body>
+</html>
