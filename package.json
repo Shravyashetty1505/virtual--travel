@@ -1,13 +1,14 @@
 {
   "name": "capstone",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Virtual Travel Booking Project",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["travel", "booking", "node", "express", "mysql"],
+  "author": "Shravya Shetty",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
