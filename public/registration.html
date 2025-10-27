@@ -477,7 +477,7 @@ input:focus, select:focus {
         <label for="dob">Date of Birth</label>
         <div class="input-wrapper has-icon">
           <span class="input-icon">🎂</span>
-          <input type="date" id="dob" name="dob"/>
+          <input type="date" id="dob" name="dob" required/>
         </div>
       </div>
 
@@ -598,9 +598,25 @@ document.getElementById('registerForm').onsubmit = async function(e) {
   const email = document.getElementById('email').value.trim().toLowerCase();
   const pass = document.getElementById('regPassword').value;
   const pass2 = document.getElementById('regPassword2').value;
-  
+
   const errorEl = document.getElementById('regError');
-  
+
+  // Age validation
+  if (dob) {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      errorEl.textContent = "You must be at least 18 years old to register.";
+      errorEl.classList.add('show');
+      return;
+    }
+  }
+
   if (pass !== pass2) {
     errorEl.textContent = "Passwords do not match";
     errorEl.classList.add('show');
